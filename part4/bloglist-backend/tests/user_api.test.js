@@ -10,12 +10,13 @@ const helper = require('./test_helper')
 const api = supertest(app)
 
 describe('when there is initially one user in db', () => {
-  beforeEach(async () => {
-    await User.deleteMany({})
-    const passwordHash = await bcrypt.hash('sekret', 10)
-    const user = new User({ username: 'root', passwordHash })
-    await user.save()
-  })
+    beforeEach(async () => {
+        await User.collection.drop().catch(() => null)
+        await User.createIndexes() // pastikan unique index terbentuk dulu
+        const passwordHash = await bcrypt.hash('sekret', 10)
+        const user = new User({ username: 'root', passwordHash })
+        await user.save()
+      })
 
   test('creation succeeds with fresh username', async () => {
     const usersAtStart = await helper.usersInDb()

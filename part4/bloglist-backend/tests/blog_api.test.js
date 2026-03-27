@@ -13,28 +13,31 @@ const api = supertest(app)
 let token = ''
 
 beforeEach(async () => {
-  await Blog.deleteMany({})
-  await User.deleteMany({})
-
-  // Buat user untuk testing
-  const passwordHash = await bcrypt.hash('testpassword', 10)
-  const user = new User({ username: 'testuser', name: 'Test User', passwordHash })
-  await user.save()
-
-  // Login untuk dapet token
-  const loginResult = await api
-    .post('/api/login')
-    .send({ username: 'testuser', password: 'testpassword' })
-  token = loginResult.body.token
-
-  // Insert initial blogs dengan user
-  for (const blog of helper.initialBlogs) {
-    const blogObj = new Blog({ ...blog, user: user._id })
-    const saved = await blogObj.save()
-    user.blogs = user.blogs.concat(saved._id)
-  }
-  await user.save()
-})
+    await Blog.deleteMany({})
+    await User.deleteMany({})
+  
+    // Buat user untuk testing
+    const passwordHash = await bcrypt.hash('testpassword', 10)
+    const user = await new User({ username: 'testuser', name: 'Test User', passwordHash }).save()
+  
+    // Insert initial blogs
+    const savedBlogs = await Promise.all(
+      helper.initialBlogs.map(blog => new Blog({ ...blog, user: user._id }).save())
+    )
+  
+    // Update user.blogs langsung di DB, tanpa re-save user object lama
+    await User.findByIdAndUpdate(
+      user._id,
+      { $set: { blogs: savedBlogs.map(b => b._id) } },
+      { new: true }
+    )
+  
+    // Login untuk dapet token
+    const loginResult = await api
+      .post('/api/login')
+      .send({ username: 'testuser', password: 'testpassword' })
+    token = loginResult.body.token
+  })
 
 // 4.8
 test('blogs are returned as json', async () => {
