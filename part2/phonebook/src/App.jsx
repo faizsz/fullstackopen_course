@@ -35,9 +35,14 @@ const App = () => {
             setNewName('')
             setNewNumber('')
           })
-          .catch(() => {
-            showNotification(`Information of ${newName} has already been removed from server`, 'error')
-            setPersons(persons.filter(p => p.id !== existing.id))
+          .catch(error => {
+            // 3.19 - show validation error from server if available
+            if (error.response && error.response.data && error.response.data.error) {
+              showNotification(error.response.data.error, 'error')
+            } else {
+              showNotification(`Information of ${newName} has already been removed from server`, 'error')
+              setPersons(persons.filter(p => p.id !== existing.id))
+            }
           })
       }
       return
@@ -50,6 +55,14 @@ const App = () => {
         showNotification(`Added ${newName}`)
         setNewName('')
         setNewNumber('')
+      })
+      .catch(error => {
+        // 3.19 - show validation error from server if available
+        if (error.response && error.response.data && error.response.data.error) {
+          showNotification(error.response.data.error, 'error')
+        } else {
+          showNotification('Something went wrong', 'error')
+        }
       })
   }
 

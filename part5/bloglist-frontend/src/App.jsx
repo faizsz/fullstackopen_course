@@ -61,11 +61,11 @@ const App = () => {
 
   const handleCreateBlog = async (blogObject) => {
     try {
-      blogFormRef.current.toggleVisibility()
       const newBlog = await blogService.create(blogObject)
+      blogFormRef.current.toggleVisibility()
       setBlogs(blogs.concat(newBlog).sort((a, b) => b.likes - a.likes))
       notify(`a new blog ${newBlog.title} by ${newBlog.author} added`)
-    } catch {
+    } catch(error) {
       notify('failed to create blog', 'error')
     }
   }
