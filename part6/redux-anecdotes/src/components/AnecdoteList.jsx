@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { vote } from '../reducers/anecdoteReducer'
+import anecdoteService from '../services/anecdoteService'
 
 const AnecdoteList = () => {
   const dispatch = useDispatch()
@@ -11,6 +12,12 @@ const AnecdoteList = () => {
     )
   })
 
+  const handleVote = async (anecdote) => {
+    const updated = { ...anecdote, votes: anecdote.votes + 1 }
+    await anecdoteService.update(anecdote.id, updated)
+    dispatch(vote(anecdote.id))
+  }
+
   return (
     <div>
       {anecdotes.map(anecdote => (
@@ -18,7 +25,7 @@ const AnecdoteList = () => {
           <div>{anecdote.content}</div>
           <div>
             has {anecdote.votes}
-            <button onClick={() => dispatch(vote(anecdote.id))}>vote</button>
+            <button onClick={() => handleVote(anecdote)}>vote</button>
           </div>
         </div>
       ))}
